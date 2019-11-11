@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare(strict_types = 1);
 
 namespace FondOfSpryker\Glue\CompaniesCompanyUsersRestApi;
 
@@ -20,7 +20,7 @@ class CompaniesCompanyUsersRestApiFactory extends AbstractFactory
     /**
      * @return \FondOfSpryker\Glue\CompaniesCompanyUsersRestApi\Processor\CompanyUser\CompanyUserReaderInterface
      */
-    public function createCompanyUsersReader(): CompanyUserReaderInterface#
+    public function createCompanyUsersReader(): CompanyUserReaderInterface
     {
         return new CompanyUserReader(
             $this->getResourceBuilder(),
@@ -41,6 +41,8 @@ class CompaniesCompanyUsersRestApiFactory extends AbstractFactory
     }
 
     /**
+     * @throws
+     *
      * @return \Spryker\Client\CompanyUser\CompanyUserClientInterface
      */
     public function getCompanyUserClient(): CompanyUserClientInterface
@@ -49,6 +51,8 @@ class CompaniesCompanyUsersRestApiFactory extends AbstractFactory
     }
 
     /**
+     * @throws
+     *
      * @return \Spryker\Client\Company\CompanyClientInterface
      */
     public function getCompanyClient(): CompanyClientInterface
