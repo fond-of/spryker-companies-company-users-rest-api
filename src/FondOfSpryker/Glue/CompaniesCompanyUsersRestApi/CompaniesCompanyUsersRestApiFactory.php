@@ -41,8 +41,7 @@ class CompaniesCompanyUsersRestApiFactory extends AbstractFactory
     }
 
     /**
-     * @throws
-     *
+
      * @return \Spryker\Client\CompanyUser\CompanyUserClientInterface
      */
     public function getCompanyUserClient(): CompanyUserClientInterface
@@ -51,8 +50,6 @@ class CompaniesCompanyUsersRestApiFactory extends AbstractFactory
     }
 
     /**
-     * @throws
-     *
      * @return \Spryker\Client\Company\CompanyClientInterface
      */
     public function getCompanyClient(): CompanyClientInterface
