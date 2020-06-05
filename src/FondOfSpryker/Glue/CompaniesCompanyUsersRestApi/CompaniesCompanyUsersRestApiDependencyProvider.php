@@ -12,6 +12,8 @@ class CompaniesCompanyUsersRestApiDependencyProvider extends AbstractBundleDepen
     public const CLIENT_COMPANY_USER = 'CLIENT_COMPANY_USER';
     public const CLIENT_COMPANY = 'CLIENT_COMPANY';
 
+    public const COMPANY_USER_SEARCH_VALIDATOR_PLUGINS = 'COMPANY_USER_SEARCH_VALIDATOR_PLUGINS';
+
     /**
      * @param \Spryker\Glue\Kernel\Container $container
      *
@@ -23,6 +25,7 @@ class CompaniesCompanyUsersRestApiDependencyProvider extends AbstractBundleDepen
 
         $container = $this->addCompanyUserClient($container);
         $container = $this->addCompanyClient($container);
+        $container = $this->addCompanyUserSearchValidatorPlugins($container);
 
         return $container;
     }
@@ -53,5 +56,27 @@ class CompaniesCompanyUsersRestApiDependencyProvider extends AbstractBundleDepen
         };
 
         return $container;
+    }
+
+    /**
+     * @param \Spryker\Glue\Kernel\Container $container
+     *
+     * @return \Spryker\Glue\Kernel\Container
+     */
+    protected function addCompanyUserSearchValidatorPlugins(Container $container): Container
+    {
+        $container[self::COMPANY_USER_SEARCH_VALIDATOR_PLUGINS] = function () {
+            return $this->getCompanyUserSearchValidatorPlugins();
+        };
+
+        return $container;
+    }
+
+    /**
+     * @return \FondOfSpryker\Glue\CompaniesCompanyUsersRestApiExtension\Dependency\Plugin\CompanyCompanyUserSearchValidatorPluginInterface[]
+     */
+    protected function getCompanyUserSearchValidatorPlugins(): array
+    {
+        return [];
     }
 }

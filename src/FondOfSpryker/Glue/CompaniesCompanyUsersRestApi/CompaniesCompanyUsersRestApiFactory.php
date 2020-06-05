@@ -26,7 +26,8 @@ class CompaniesCompanyUsersRestApiFactory extends AbstractFactory
             $this->getResourceBuilder(),
             $this->createCompaniesCompanyUsersMapper(),
             $this->getCompanyUserClient(),
-            $this->getCompanyClient()
+            $this->getCompanyClient(),
+            $this->getCompanyUserSearchValidatorPlugins()
         );
     }
 
@@ -58,5 +59,13 @@ class CompaniesCompanyUsersRestApiFactory extends AbstractFactory
     public function getCompanyClient(): CompanyClientInterface
     {
         return $this->getProvidedDependency(CompaniesCompanyUsersRestApiDependencyProvider::CLIENT_COMPANY);
+    }
+
+    /**
+     * @return \FondOfSpryker\Glue\CompaniesCompanyUsersRestApiExtension\Dependency\Plugin\CompanyCompanyUserSearchValidatorPluginInterface[]
+     */
+    public function getCompanyUserSearchValidatorPlugins(): array
+    {
+        return $this->getProvidedDependency(CompaniesCompanyUsersRestApiDependencyProvider::COMPANY_USER_SEARCH_VALIDATOR_PLUGINS);
     }
 }
