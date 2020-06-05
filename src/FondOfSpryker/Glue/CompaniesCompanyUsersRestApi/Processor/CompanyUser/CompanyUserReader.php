@@ -9,6 +9,7 @@ use FondOfSpryker\Glue\CompaniesRestApi\CompaniesRestApiConfig;
 use FondOfSpryker\Shared\CompaniesCompanyUsersRestApi\CompaniesCompanyUsersRestApiConfig;
 use Generated\Shared\Transfer\CompanyTransfer;
 use Generated\Shared\Transfer\CompanyUserCriteriaFilterTransfer;
+use Generated\Shared\Transfer\CompanyUserTransfer;
 use Generated\Shared\Transfer\RestErrorMessageTransfer;
 use Spryker\Client\Company\CompanyClientInterface;
 use Spryker\Client\CompanyUser\CompanyUserClientInterface;
@@ -40,21 +41,29 @@ final class CompanyUserReader implements CompanyUserReaderInterface
     private $companyClient;
 
     /**
+     * @var array|\FondOfSpryker\Glue\CompaniesCompanyUsersRestApiExtension\Dependency\Plugin\CompanyCompanyUserSearchValidatorPluginInterface[]
+     */
+    protected $companyUserSearchValidatorPlugins;
+
+    /**
      * @param \Spryker\Glue\GlueApplication\Rest\JsonApi\RestResourceBuilderInterface $restResourceBuilder
      * @param \FondOfSpryker\Glue\CompaniesCompanyUsersRestApi\Processor\Mapper\CompaniesCompanyUsersMapperInterface $companiesCompanyUsersMapper
      * @param \Spryker\Client\CompanyUser\CompanyUserClientInterface $companyUserClient
      * @param \Spryker\Client\Company\CompanyClientInterface $companyClient
+     * @param \FondOfSpryker\Glue\CompaniesCompanyUsersRestApiExtension\Dependency\Plugin\CompanyCompanyUserSearchValidatorPluginInterface[] $companyUserSearchValidatorPlugins
      */
     public function __construct(
         RestResourceBuilderInterface $restResourceBuilder,
         CompaniesCompanyUsersMapperInterface $companiesCompanyUsersMapper,
         CompanyUserClientInterface $companyUserClient,
-        CompanyClientInterface $companyClient
+        CompanyClientInterface $companyClient,
+        array $companyUserSearchValidatorPlugins
     ) {
         $this->companyUserClient = $companyUserClient;
         $this->restResourceBuilder = $restResourceBuilder;
         $this->companiesCompanyUsersMapper = $companiesCompanyUsersMapper;
         $this->companyClient = $companyClient;
+        $this->companyUserSearchValidatorPlugins = $companyUserSearchValidatorPlugins;
     }
 
     /**
@@ -80,9 +89,12 @@ final class CompanyUserReader implements CompanyUserReaderInterface
 
         $companyUserFilter = new CompanyUserCriteriaFilterTransfer();
         $companyUserFilter->setIdCompany($companyResponseTransfer->getCompanyTransfer()->getIdCompany());
-
         $companyUserCollectionTransfer = $this->companyUserClient->getCompanyUserCollection($companyUserFilter);
+
         foreach ($companyUserCollectionTransfer->getCompanyUsers() as $companyUser) {
+            if ($this->isValidCompanyUserForSearchResponse($companyUser) === false) {
+                continue;
+            }
             $resource = $this->companiesCompanyUsersMapper
                 ->mapCompanyUsersResource($companyUser)
                 ->setPayload($companyUser);
@@ -106,6 +118,22 @@ final class CompanyUserReader implements CompanyUserReaderInterface
         }
 
         return null;
+    }
+
+    /**
+     * @param \Generated\Shared\Transfer\CompanyUserTransfer $companyUserTransfer
+     *
+     * @return bool
+     */
+    protected function isValidCompanyUserForSearchResponse(CompanyUserTransfer $companyUserTransfer): bool
+    {
+        foreach ($this->companyUserSearchValidatorPlugins as $companyCompanyUserSearchValidatorPlugin) {
+            if ($companyCompanyUserSearchValidatorPlugin->validate($companyUserTransfer) === false) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /**
