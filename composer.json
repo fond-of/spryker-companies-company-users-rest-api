@@ -10,8 +10,8 @@
   ],
   "require": {
     "php": ">=7.1",
-    "fond-of-spryker/company-users-rest-api": "dev-spryker_upgrade",
-    "fond-of-spryker/companies-rest-api": "dev-spryker_upgrade",
+    "fond-of-spryker/companies-company-users-rest-api-extension": "dev-master",
+    "spryker/company": "^1.4.0",
     "spryker/company-user": "^1.0.0 || ^2.0.0",
     "spryker/glue-application": "^1.0.0"
   },

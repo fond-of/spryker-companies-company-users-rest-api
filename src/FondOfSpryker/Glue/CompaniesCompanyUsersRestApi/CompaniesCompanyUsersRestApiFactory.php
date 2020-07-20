@@ -44,7 +44,7 @@ class CompaniesCompanyUsersRestApiFactory extends AbstractFactory
     /**
      * @return \Spryker\Client\CompanyUser\CompanyUserClientInterface
      */
-    public function getCompanyUserClient(): CompanyUserClientInterface
+    protected function getCompanyUserClient(): CompanyUserClientInterface
     {
         return $this->getProvidedDependency(CompaniesCompanyUsersRestApiDependencyProvider::CLIENT_COMPANY_USER);
     }
@@ -52,7 +52,7 @@ class CompaniesCompanyUsersRestApiFactory extends AbstractFactory
     /**
      * @return \Spryker\Client\Company\CompanyClientInterface
      */
-    public function getCompanyClient(): CompanyClientInterface
+    protected function getCompanyClient(): CompanyClientInterface
     {
         return $this->getProvidedDependency(CompaniesCompanyUsersRestApiDependencyProvider::CLIENT_COMPANY);
     }
@@ -60,8 +60,8 @@ class CompaniesCompanyUsersRestApiFactory extends AbstractFactory
     /**
      * @return \FondOfSpryker\Glue\CompaniesCompanyUsersRestApiExtension\Dependency\Plugin\CompanyCompanyUserSearchValidatorPluginInterface[]
      */
-    public function getCompanyUserSearchValidatorPlugins(): array
+    protected function getCompanyUserSearchValidatorPlugins(): array
     {
-        return $this->getProvidedDependency(CompaniesCompanyUsersRestApiDependencyProvider::COMPANY_USER_SEARCH_VALIDATOR_PLUGINS);
+        return $this->getProvidedDependency(CompaniesCompanyUsersRestApiDependencyProvider::PLUGINS_COMPANY_USER_SEARCH_VALIDATOR);
     }
 }
