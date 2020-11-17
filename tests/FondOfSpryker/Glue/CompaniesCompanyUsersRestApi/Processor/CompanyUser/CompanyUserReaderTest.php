@@ -4,6 +4,7 @@ namespace FondOfSpryker\Glue\CompaniesCompanyUsersRestApi\Processor\CompanyUser;
 
 use Codeception\Test\Unit;
 use FondOfSpryker\Glue\CompaniesCompanyUsersRestApi\Processor\Mapper\CompaniesCompanyUsersMapperInterface;
+use FondOfSpryker\Glue\CompaniesCompanyUsersRestApiExtension\Dependency\Plugin\CompanyCompanyUserSearchValidatorPluginInterface;
 use Generated\Shared\Transfer\CompanyResponseTransfer;
 use Generated\Shared\Transfer\CompanyTransfer;
 use Generated\Shared\Transfer\CompanyUserCollectionTransfer;
@@ -44,6 +45,11 @@ class CompanyUserReaderTest extends Unit
     protected $companyClientInterfaceMock;
 
     /**
+     * @var \FondOfSpryker\Glue\CompaniesCompanyUsersRestApiExtension\Dependency\Plugin\CompanyCompanyUserSearchValidatorPluginInterface[]|\PHPUnit\Framework\MockObject\MockObject[]
+     */
+    protected $companyCompanyUserSearchValidatorPluginMocks;
+
+    /**
      * @var \PHPUnit\Framework\MockObject\MockObject|\Spryker\Glue\GlueApplication\Rest\Request\Data\RestRequestInterface
      */
     protected $restRequestInterfaceMock;
@@ -64,7 +70,7 @@ class CompanyUserReaderTest extends Unit
     protected $restResourceInterfaceMock;
 
     /**
-     * @var int
+     * @var string
      */
     protected $id;
 
@@ -94,7 +100,7 @@ class CompanyUserReaderTest extends Unit
     protected $companyUserTransferMock;
 
     /**
-     * @var array
+     * @var \PHPUnit\Framework\MockObject\MockObject[]|\Generated\Shared\Transfer\CompanyUserTransfer[]
      */
     protected $companyUserTransferMocks;
 
@@ -121,6 +127,12 @@ class CompanyUserReaderTest extends Unit
             ->disableOriginalConstructor()
             ->getMock();
 
+        $this->companyCompanyUserSearchValidatorPluginMocks = [
+            $this->getMockBuilder(CompanyCompanyUserSearchValidatorPluginInterface::class)
+            ->disableOriginalConstructor()
+            ->getMock(),
+        ];
+
         $this->restRequestInterfaceMock = $this->getMockBuilder(RestRequestInterface::class)
             ->disableOriginalConstructor()
             ->getMock();
@@ -137,7 +149,7 @@ class CompanyUserReaderTest extends Unit
             ->disableOriginalConstructor()
             ->getMock();
 
-        $this->id = 1;
+        $this->id = 'b6239c14-8ee1-11ea-bc55-0242ac130003';
 
         $this->companyResponseTransferMock = $this->getMockBuilder(CompanyResponseTransfer::class)
             ->disableOriginalConstructor()
@@ -165,7 +177,8 @@ class CompanyUserReaderTest extends Unit
             $this->restResourceBuilderInterfaceMock,
             $this->companiesCompanyUsersMapperInterfaceMock,
             $this->companyUserClientInterfaceMock,
-            $this->companyClientInterfaceMock
+            $this->companyClientInterfaceMock,
+            $this->companyCompanyUserSearchValidatorPluginMocks
         );
     }
 
@@ -214,6 +227,11 @@ class CompanyUserReaderTest extends Unit
             ->method('getCompanyUsers')
             ->willReturn($this->companyUserTransferMocks);
 
+        $this->companyCompanyUserSearchValidatorPluginMocks[0]->expects($this->atLeastOnce())
+            ->method('validate')
+            ->with($this->companyUserTransferMocks[0])
+            ->willReturn(true);
+
         $this->companiesCompanyUsersMapperInterfaceMock->expects($this->atLeastOnce())
             ->method('mapCompanyUsersResource')
             ->willReturn($this->restResourceInterfaceMock);
@@ -225,6 +243,73 @@ class CompanyUserReaderTest extends Unit
         $this->restResponseInterfaceMock->expects($this->atLeastOnce())
             ->method('addResource')
             ->willReturn($this->restResponseInterfaceMock);
+
+        $this->assertInstanceOf(
+            RestResponseInterface::class,
+            $this->companyUserReader->findCompanyUsersByCompanyId(
+                $this->restRequestInterfaceMock
+            )
+        );
+    }
+
+    /**
+     * @return void
+     */
+    public function testFindCompanyUsersByCompanyIdWithInvalidCompanyUser(): void
+    {
+        $this->restResourceBuilderInterfaceMock->expects($this->atLeastOnce())
+            ->method('createRestResponse')
+            ->willReturn($this->restResponseInterfaceMock);
+
+        $this->restRequestInterfaceMock->expects($this->atLeastOnce())
+            ->method('getRestUser')
+            ->willReturn($this->restUserTransferMock);
+
+        $this->restRequestInterfaceMock->expects($this->atLeastOnce())
+            ->method('findParentResourceByType')
+            ->willReturn($this->restResourceInterfaceMock);
+
+        $this->restResourceInterfaceMock->expects($this->atLeastOnce())
+            ->method('getId')
+            ->willReturn($this->id);
+
+        $this->companyClientInterfaceMock->expects($this->atLeastOnce())
+            ->method('findCompanyByUuid')
+            ->willReturn($this->companyResponseTransferMock);
+
+        $this->companyResponseTransferMock->expects($this->atLeastOnce())
+            ->method('getIsSuccessful')
+            ->willReturn(true);
+
+        $this->companyResponseTransferMock->expects($this->atLeastOnce())
+            ->method('getCompanyTransfer')
+            ->willReturn($this->companyTransferMock);
+
+        $this->companyTransferMock->expects($this->atLeastOnce())
+            ->method('getIdCompany')
+            ->willReturn($this->idCompany);
+
+        $this->companyUserClientInterfaceMock->expects($this->atLeastOnce())
+            ->method('getCompanyUserCollection')
+            ->willReturn($this->companyUserCollectionTransferMock);
+
+        $this->companyUserCollectionTransferMock->expects($this->atLeastOnce())
+            ->method('getCompanyUsers')
+            ->willReturn($this->companyUserTransferMocks);
+
+        $this->companyCompanyUserSearchValidatorPluginMocks[0]->expects($this->atLeastOnce())
+            ->method('validate')
+            ->with($this->companyUserTransferMocks[0])
+            ->willReturn(false);
+
+        $this->companiesCompanyUsersMapperInterfaceMock->expects($this->never())
+            ->method('mapCompanyUsersResource');
+
+        $this->restResourceInterfaceMock->expects($this->never())
+            ->method('setPayload');
+
+        $this->restResponseInterfaceMock->expects($this->never())
+            ->method('addResource');
 
         $this->assertInstanceOf(
             RestResponseInterface::class,

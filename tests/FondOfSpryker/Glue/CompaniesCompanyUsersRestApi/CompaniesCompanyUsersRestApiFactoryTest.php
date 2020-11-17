@@ -3,8 +3,11 @@
 namespace FondOfSpryker\Glue\CompaniesCompanyUsersRestApi;
 
 use Codeception\Test\Unit;
+use FondOfSpryker\Glue\CompaniesCompanyUsersRestApi\Processor\CompanyUser\CompanyUserReader;
+use FondOfSpryker\Glue\CompaniesCompanyUsersRestApi\Processor\Mapper\CompaniesCompanyUsersMapper;
 use Spryker\Client\Company\CompanyClientInterface;
 use Spryker\Client\CompanyUser\CompanyUserClientInterface;
+use Spryker\Glue\GlueApplication\Rest\JsonApi\RestResourceBuilderInterface;
 use Spryker\Glue\Kernel\Container;
 
 class CompaniesCompanyUsersRestApiFactoryTest extends Unit
@@ -18,6 +21,11 @@ class CompaniesCompanyUsersRestApiFactoryTest extends Unit
      * @var \PHPUnit\Framework\MockObject\MockObject|\Spryker\Glue\Kernel\Container
      */
     protected $containerMock;
+
+    /**
+     * @var \PHPUnit\Framework\MockObject\MockObject
+     */
+    protected $restResourceBuilderMock;
 
     /**
      * @var \PHPUnit\Framework\MockObject\MockObject|\Spryker\Client\CompanyUser\CompanyUserClientInterface
@@ -40,6 +48,10 @@ class CompaniesCompanyUsersRestApiFactoryTest extends Unit
             ->disableOriginalConstructor()
             ->getMock();
 
+        $this->restResourceBuilderMock = $this->getMockBuilder(RestResourceBuilderInterface::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+
         $this->companyUserClientInterfaceMock = $this->getMockBuilder(CompanyUserClientInterface::class)
             ->disableOriginalConstructor()
             ->getMock();
@@ -48,47 +60,72 @@ class CompaniesCompanyUsersRestApiFactoryTest extends Unit
             ->disableOriginalConstructor()
             ->getMock();
 
-        $this->companiesCompanyUsersRestApiFactory = new CompaniesCompanyUsersRestApiFactory();
+        $this->companiesCompanyUsersRestApiFactory = new class ($this->restResourceBuilderMock) extends CompaniesCompanyUsersRestApiFactory {
+            /**
+             * @var \Spryker\Glue\GlueApplication\Rest\JsonApi\RestResourceBuilderInterface
+             */
+            protected $restResourceBuilder;
+
+            /**
+             * @param \Spryker\Glue\GlueApplication\Rest\JsonApi\RestResourceBuilderInterface $restResourceBuilder
+             */
+            public function __construct(RestResourceBuilderInterface $restResourceBuilder)
+            {
+                $this->restResourceBuilder = $restResourceBuilder;
+            }
+
+            /**
+             * @return \Spryker\Glue\GlueApplication\Rest\JsonApi\RestResourceBuilderInterface
+             */
+            public function getResourceBuilder(): RestResourceBuilderInterface
+            {
+                return $this->restResourceBuilder;
+            }
+        };
+
         $this->companiesCompanyUsersRestApiFactory->setContainer($this->containerMock);
     }
 
     /**
      * @return void
      */
-    public function testGetCompanyUserClient(): void
+    public function testCreateCompanyUsersReader(): void
     {
         $this->containerMock->expects($this->atLeastOnce())
             ->method('has')
-            ->willReturn(true);
+            ->withConsecutive(
+                [CompaniesCompanyUsersRestApiDependencyProvider::CLIENT_COMPANY_USER],
+                [CompaniesCompanyUsersRestApiDependencyProvider::CLIENT_COMPANY],
+                [CompaniesCompanyUsersRestApiDependencyProvider::PLUGINS_COMPANY_USER_SEARCH_VALIDATOR],
+            )->willReturn(true);
 
         $this->containerMock->expects($this->atLeastOnce())
             ->method('get')
-            ->with(CompaniesCompanyUsersRestApiDependencyProvider::CLIENT_COMPANY_USER)
-            ->willReturn($this->companyUserClientInterfaceMock);
+            ->withConsecutive(
+                [CompaniesCompanyUsersRestApiDependencyProvider::CLIENT_COMPANY_USER],
+                [CompaniesCompanyUsersRestApiDependencyProvider::CLIENT_COMPANY],
+                [CompaniesCompanyUsersRestApiDependencyProvider::PLUGINS_COMPANY_USER_SEARCH_VALIDATOR],
+            )
+            ->willReturnOnConsecutiveCalls(
+                $this->companyUserClientInterfaceMock,
+                $this->companyClientInterfaceMock,
+                []
+            );
 
         $this->assertInstanceOf(
-            CompanyUserClientInterface::class,
-            $this->companiesCompanyUsersRestApiFactory->getCompanyUserClient()
+            CompanyUserReader::class,
+            $this->companiesCompanyUsersRestApiFactory->createCompanyUsersReader()
         );
     }
 
     /**
      * @return void
      */
-    public function testGetCompanyClient(): void
+    public function testCreateCompanyUsersMapper(): void
     {
-        $this->containerMock->expects($this->atLeastOnce())
-            ->method('has')
-            ->willReturn(true);
-
-        $this->containerMock->expects($this->atLeastOnce())
-            ->method('get')
-            ->with(CompaniesCompanyUsersRestApiDependencyProvider::CLIENT_COMPANY)
-            ->willReturn($this->companyClientInterfaceMock);
-
         $this->assertInstanceOf(
-            CompanyClientInterface::class,
-            $this->companiesCompanyUsersRestApiFactory->getCompanyClient()
+            CompaniesCompanyUsersMapper::class,
+            $this->companiesCompanyUsersRestApiFactory->createCompaniesCompanyUsersMapper()
         );
     }
 }
